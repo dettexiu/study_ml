@@ -7,8 +7,8 @@
 
 /* ヘッダファイルのインクルード */
 #include<stdio.h>
+//#include<math.h>
 #include<stdlib.h>
-#include<math.h>
 
 /* 記号定数の定義 */
 #define NOA 10 /* 蟻の個体数(Nunber Of Ant)*/
@@ -17,7 +17,6 @@
 #define RHO 0.8 /* 蒸発の定数 */
 #define STEP 10 /* 道のりのステップ数 */
 #define EPSILON 0.15 /* 行動選択のランダム性の決定 */
-//#define SEED 50000 /*乱数のシード */
 #define SEED 32768
 
 
@@ -50,8 +49,9 @@ int main(){
   //---------------------------------------------
   
   int cost[2][STEP]={/* 各ステップのコスト(距離)*/
-    {1,1,1,1,1,1,1,1,1,1},
-    {5,5,5,5,5,5,5,5,5,5}};
+      {1,1,1,1,1,1,1,1,1,1},
+      {5,5,5,5,5,5,5,5,5,5}
+    };
 
   
   double pheromone[2][STEP]={
@@ -62,16 +62,16 @@ int main(){
 
   
   int mstep[NOA][STEP]={
-                        {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
-			{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
+                        {0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0},
+			{0,0,0,0.0,0,0,0,0,0,0}
                        };
   
   int i; /* 繰り返し回数の制御 */
@@ -92,11 +92,13 @@ int main(){
 
     /* フェロモンの更新 */
     update(cost,pheromone,mstep);
+    
   }
 
   /* フェロモンの状態出力 */
   printf("%d:\n",i);
   printp(pheromone);
+
 
   return 0;
 }
@@ -114,34 +116,20 @@ void update(int cost[2][STEP]
   int lm; /* 移動距離*/
   int i,j;
   double sum_lm;/* 歩いた合計距離 */
-
-  int select_rute;
   
-  sum_lm=0;
-  select_rute=0;
+  sum_lm=0.0;
+  
 
   /* フェロモンの蒸発 */
   for (i=0;i<2;++i){
     for (j = 0 ;j<STEP;++j){
-      pheromone[i][j] *=RHO;
+      pheromone[i][j] *= RHO;
     }
   }
 
   /* 蟻による上塗り */
   for (m=0;m<NOA;++m){
     lm = 0;
-    /*
-    for (i=0;i<STEP;++i){
-      //個体mの蟻がi番目に選択したルート
-      select_rute=mstep[m][i];
-
-      // 個体mの蟻の移動距離lm
-      lm += cost[select_rute][i];
-
-      //フェロモンの上塗り
-      pheromone[select_rute][i] += ( Q* (1.0/(double)lm) );//intとdoubleの計算:結果はdoubleになる
-    }
-    */
     
     /* 個体mの移動距離lmの計算 */
     for (i=0;i<STEP;++i){
@@ -150,16 +138,16 @@ void update(int cost[2][STEP]
 
     //フェロモンの上塗り
     for(i=0;i<STEP;++i){
-      pheromone[mstep[m][i]][i] += Q * (1.0/lm );
+      pheromone[mstep[m][i]][i] +=( Q * (1.0/lm)) ;
     }
     
-    sum_lm +=lm; 
+    sum_lm += (double)lm; 
   }
   
   /* 蟻の歩いた平均距離を出力 */
   printf("\n");
   printf("蟻が歩いた平均距離:\n");
-  printf("%lf\n",(sum_lm/NOA));
+  printf("%lf\n",sum_lm/NOA);
 }
 
 
@@ -173,8 +161,14 @@ void walk(int cost[2][STEP]
   int m; /* 蟻の個体番号 */
   int s; /* 蟻の現在ステップ位置 */
 
+
+  //選択経路がおかしくなる原因→abs(絶対値をとる関数)
+  
   for ( m=0; m<NOA ; ++m){
     for(s=0;s<STEP;++s){
+
+      
+	
       /* ε-グリーディ法 */
       if(rand1()<EPSILON){
 	  //絶対値の取得関数
@@ -183,9 +177,13 @@ void walk(int cost[2][STEP]
 	/* ランダムに移動 */
 	mstep[m][s] = rand01();
 	/* 差がほとんどない時 */
-      }else if(abs(pheromone[0][s] - pheromone[1][s] )<1e-9 ){
+      }
+      //絶対値が1e-9以下のとき
+      else if(pheromone[0][s] - pheromone[1][s]<1e-9 &&
+	      -(pheromone[0][s] - pheromone[1][s])>(-(1e-9))  ){
 	mstep[m][s] = rand01();
-      }else{
+	}
+      else{
 	/* フェロモン濃度により決定 */
 	if(pheromone[0][s] > pheromone[1][s]){
 	  mstep[m][s]=0;
