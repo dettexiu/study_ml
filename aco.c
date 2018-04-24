@@ -178,7 +178,9 @@ void walk(int cost[2][STEP]
 	mstep[m][s] = rand01();
 	/* 差がほとんどない時 */
       }
+
       //絶対値が1e-9以下のとき
+      //math.hを読むときは -lm
       else if(pheromone[0][s] - pheromone[1][s]<1e-9 &&
 	      -(pheromone[0][s] - pheromone[1][s])>(-(1e-9))  ){
 	mstep[m][s] = rand01();
